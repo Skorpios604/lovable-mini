@@ -13,6 +13,33 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing Groq API key' }, { status: 500 });
     }
 
+    const enhancedPrompt = `
+Create a React functional component based on this request: "${prompt}"
+
+Requirements:
+- Write a complete, functional React component
+- Use modern React hooks (useState, useEffect, etc.) if needed
+- Use Tailwind CSS for styling with modern, attractive designs
+- Make the component interactive and visually appealing
+- Do not include any import statements
+- Do not include export statements
+- Use proper React patterns and best practices
+- Make sure the component is self-contained and complete
+- Add hover effects, transitions, and micro-interactions where appropriate
+
+Example format:
+function MyComponent() {
+  const [state, setState] = useState(initialValue);
+  
+  return (
+    <div className="...">
+      {/* Component JSX */}
+    </div>
+  );
+}
+
+Now create the component:`;
+
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -24,11 +51,12 @@ export async function POST(req: NextRequest) {
         messages: [
           {
             role: 'system',
-            content:
-              'You are a helpful assistant that writes React components using TailwindCSS. Return only the component code, no explanations.',
+            content: 'You are an expert React developer who creates beautiful, functional components. Return only the component code without any explanations, markdown formatting, or additional text.',
           },
-          { role: 'user', content: prompt },
+          { role: 'user', content: enhancedPrompt },
         ],
+        temperature: 0.7,
+        max_tokens: 2048,
       }),
     });
 
