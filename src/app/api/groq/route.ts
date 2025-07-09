@@ -16,29 +16,37 @@ export async function POST(req: NextRequest) {
     const enhancedPrompt = `
 Create a React functional component based on this request: "${prompt}"
 
-Requirements:
-- Write a complete, functional React component
-- Use modern React hooks (useState, useEffect, etc.) if needed
-- Use Tailwind CSS for styling with modern, attractive designs
-- Make the component interactive and visually appealing
-- Do not include any import statements
-- Do not include export statements
-- Use proper React patterns and best practices
-- Make sure the component is self-contained and complete
-- Add hover effects, transitions, and micro-interactions where appropriate
+CRITICAL REQUIREMENTS:
+- Return ONLY the React component code, no explanations or markdown
+- Use function declaration: function ComponentName() { ... }
+- Do NOT include any import statements
+- Do NOT include any export statements
+- Use React hooks (useState, useEffect, etc.) if needed - they're available in scope
+- Use Tailwind CSS classes for styling
+- Make it interactive and visually appealing
+- Component should be self-contained and functional
+- Add hover effects and transitions where appropriate
+- Use modern React patterns
 
-Example format:
+EXAMPLE FORMAT:
 function MyComponent() {
-  const [state, setState] = useState(initialValue);
+  const [count, setCount] = useState(0);
   
   return (
-    <div className="...">
-      {/* Component JSX */}
+    <div className="p-6 max-w-md mx-auto bg-white rounded-xl shadow-lg">
+      <button 
+        onClick={() => setCount(count + 1)}
+        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+      >
+        Count: {count}
+      </button>
     </div>
   );
 }
 
-Now create the component:`;
+IMPORTANT: Only return the function component code, no render() calls or JSX at the end.
+
+Now create the component for: "${prompt}"`;
 
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -51,12 +59,19 @@ Now create the component:`;
         messages: [
           {
             role: 'system',
-            content: 'You are an expert React developer who creates beautiful, functional components. Return only the component code without any explanations, markdown formatting, or additional text.',
+            content: `You are an expert React developer. You MUST:
+            1. Return ONLY the React component code
+            2. NO explanations, NO markdown, NO backticks
+            3. Use function declaration syntax
+            4. Make components interactive and beautiful
+            5. Use Tailwind CSS for styling
+            6. Component should work immediately when rendered`,
           },
           { role: 'user', content: enhancedPrompt },
         ],
         temperature: 0.7,
         max_tokens: 2048,
+        stop: ['```', 'export', 'import'],
       }),
     });
 
@@ -66,7 +81,31 @@ Now create the component:`;
       return NextResponse.json({ error: data.error || 'Error from Groq API' }, { status: response.status });
     }
 
-    const generatedCode = data.choices?.[0]?.message?.content || '';
+    let generatedCode = data.choices?.[0]?.message?.content || '';
+    
+    // Clean up the generated code
+    generatedCode = generatedCode.trim();
+    
+    // Remove any potential markdown or code blocks
+    generatedCode = generatedCode.replace(/```(?:jsx?|tsx?|javascript|typescript)?\n?/g, '');
+    generatedCode = generatedCode.replace(/```/g, '');
+    
+    // Remove import/export statements if they slipped through
+    generatedCode = generatedCode.replace(/import\s+.*?from\s+['"].*?['"];?\s*/g, '');
+    generatedCode = generatedCode.replace(/export\s+default\s+/g, '');
+    generatedCode = generatedCode.replace(/export\s+/g, '');
+    
+    // If it doesn't start with function, try to wrap it properly
+    if (!generatedCode.includes('function ') && !generatedCode.includes('const ') && !generatedCode.includes('=>')) {
+      // If it looks like JSX, wrap it in a component
+      if (generatedCode.includes('<') && generatedCode.includes('>')) {
+        generatedCode = `function GeneratedComponent() {
+  return (
+    ${generatedCode}
+  );
+}`;
+      }
+    }
 
     return NextResponse.json({ code: generatedCode });
   } catch (error: any) {
