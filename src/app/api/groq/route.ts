@@ -14,39 +14,99 @@ export async function POST(req: NextRequest) {
     }
 
     const enhancedPrompt = `
-Create a React functional component based on this request: "${prompt}"
+You are creating a React functional component. Follow these rules EXACTLY:
 
-CRITICAL REQUIREMENTS:
-- Return ONLY the React component code, no explanations or markdown
-- Use function declaration: function ComponentName() { ... }
-- Do NOT include any import statements
-- Do NOT include any export statements
-- Use React hooks (useState, useEffect, etc.) if needed - they're available in scope
-- Use Tailwind CSS classes for styling
-- Make it interactive and visually appealing
-- Component should be self-contained and functional
-- Add hover effects and transitions where appropriate
-- Use modern React patterns
+Request: "${prompt}"
 
-EXAMPLE FORMAT:
-function MyComponent() {
-  const [count, setCount] = useState(0);
+CRITICAL RULES:
+1. Return ONLY a complete React function component
+2. Use function declaration: function ComponentName() { ... }
+3. NO import statements, NO export statements
+4. Use React hooks if needed (useState, useEffect available in scope)
+5. Use Tailwind CSS classes for ALL styling
+6. Make components interactive with proper event handlers
+7. Ensure all click handlers and form submissions work properly
+8. Component must be complete and functional
+
+EXAMPLE (for a button):
+function MyButton() {
+  const [clicked, setClicked] = useState(false);
+  
+  const handleClick = () => {
+    setClicked(!clicked);
+  };
   
   return (
-    <div className="p-6 max-w-md mx-auto bg-white rounded-xl shadow-lg">
-      <button 
-        onClick={() => setCount(count + 1)}
-        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-      >
-        Count: {count}
-      </button>
+    <button 
+      onClick={handleClick}
+      className={\`px-6 py-3 rounded-lg font-medium transition-all duration-200 \${
+        clicked 
+          ? 'bg-green-500 text-white hover:bg-green-600' 
+          : 'bg-blue-500 text-white hover:bg-blue-600'
+      }\`}
+    >
+      {clicked ? 'Clicked!' : 'Click me'}
+    </button>
+  );
+}
+
+EXAMPLE (for a todo list):
+function TodoList() {
+  const [todos, setTodos] = useState([]);
+  const [inputValue, setInputValue] = useState('');
+  
+  const addTodo = () => {
+    if (inputValue.trim()) {
+      setTodos([...todos, { id: Date.now(), text: inputValue, completed: false }]);
+      setInputValue('');
+    }
+  };
+  
+  const toggleTodo = (id) => {
+    setTodos(todos.map(todo => 
+      todo.id === id ? { ...todo, completed: !todo.completed } : todo
+    ));
+  };
+  
+  return (
+    <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-lg">
+      <h2 className="text-2xl font-bold mb-4">Todo List</h2>
+      <div className="flex gap-2 mb-4">
+        <input
+          type="text"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyPress={(e) => e.key === 'Enter' && addTodo()}
+          placeholder="Add a todo..."
+          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <button
+          onClick={addTodo}
+          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+        >
+          Add
+        </button>
+      </div>
+      <ul className="space-y-2">
+        {todos.map(todo => (
+          <li
+            key={todo.id}
+            onClick={() => toggleTodo(todo.id)}
+            className={\`p-3 rounded-md cursor-pointer transition-colors \${
+              todo.completed
+                ? 'bg-green-100 text-green-800 line-through'
+                : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+            }\`}
+          >
+            {todo.text}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
 
-IMPORTANT: Only return the function component code, no render() calls or JSX at the end.
-
-Now create the component for: "${prompt}"`;
+Now create a component for: "${prompt}"`;
 
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -60,12 +120,15 @@ Now create the component for: "${prompt}"`;
           {
             role: 'system',
             content: `You are an expert React developer. You MUST:
-            1. Return ONLY the React component code
+            1. Return ONLY a complete React function component
             2. NO explanations, NO markdown, NO backticks
-            3. Use function declaration syntax
-            4. Make components interactive and beautiful
-            5. Use Tailwind CSS for styling
-            6. Component should work immediately when rendered`,
+            3. Use function declaration syntax: function ComponentName() { ... }
+            4. Make components interactive with working event handlers
+            5. Use Tailwind CSS for ALL styling
+            6. Ensure all functionality works (buttons click, forms submit, etc.)
+            7. Component should be complete and render immediately
+            8. Use proper React patterns and hooks
+            9. Handle edge cases and user interactions properly`,
           },
           { role: 'user', content: enhancedPrompt },
         ],
