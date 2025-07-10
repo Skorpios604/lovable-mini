@@ -10,7 +10,7 @@ const scope = {
   useEffect: React.useEffect,
   useMemo: React.useMemo,
   useCallback: React.useCallback,
-  render: (element: React.ReactElement) => element, // Add render function for react-live
+  render: (element: React.ReactElement) => element,
 };
 
 export default function CodeGenerator() {
@@ -25,17 +25,11 @@ export default function CodeGenerator() {
     if (!rawCode) return '';
 
     try {
-      // Remove any markdown code blocks
       let cleanCode = rawCode.replace(/```(?:jsx?|tsx?|javascript|typescript)?\n?/g, '').trim();
-      
-      // Remove import statements (they'll be handled by scope)
       cleanCode = cleanCode.replace(/import\s+.*?from\s+['"].*?['"];?\s*/g, '');
-      
-      // Remove export statements
       cleanCode = cleanCode.replace(/export\s+default\s+/g, '');
       cleanCode = cleanCode.replace(/export\s+/g, '');
       
-      // Extract component name and ensure it's properly formatted
       let componentName = 'GeneratedComponent';
       const functionMatch = cleanCode.match(/function\s+(\w+)/);
       const constMatch = cleanCode.match(/const\s+(\w+)\s*=/);
@@ -46,9 +40,7 @@ export default function CodeGenerator() {
         componentName = constMatch[1];
       }
       
-      // If it's not already a proper component, wrap it
       if (!cleanCode.includes('function ') && !cleanCode.includes('const ') && !cleanCode.includes('=>')) {
-        // If it's just JSX, wrap it in a component
         cleanCode = `function GeneratedComponent() {
   return (
     ${cleanCode}
@@ -57,7 +49,6 @@ export default function CodeGenerator() {
         componentName = 'GeneratedComponent';
       }
       
-      // Make sure we render the component using render() for react-live
       if (!cleanCode.includes('render(')) {
         cleanCode = `${cleanCode}
 
@@ -90,7 +81,7 @@ render(<${componentName} />);`;
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Something went wrong');
       setRawCode(data.code);
-      setActiveTab('preview'); // Switch to preview tab when new code is generated
+      setActiveTab('preview');
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -99,168 +90,490 @@ render(<${componentName} />);`;
   }
 
   return (
-    <div style={{ maxWidth: 1200, margin: 'auto', padding: 20, background: '#18181b', minHeight: '100vh', color: '#f4f4f5' }}>
-      <h1 style={{ color: '#f4f4f5', marginBottom: 20 }}>Generate React Components with Groq Llama3</h1>
+    <div style={{ 
+      minHeight: '100vh', 
+      background: 'linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #16213e 100%)',
+      color: '#00ffff',
+      fontFamily: '"Orbitron", "Courier New", monospace',
+      position: 'relative',
+      overflow: 'hidden'
+    }}>
+      {/* Animated background grid */}
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundImage: `
+          linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px)
+        `,
+        backgroundSize: '50px 50px',
+        animation: 'grid-move 20s linear infinite',
+        zIndex: 1
+      }} />
       
-      <form onSubmit={handleSubmit} style={{ marginBottom: 20 }}>
-        <textarea
-          placeholder="Enter your prompt here... (e.g., 'Create a button with hover effects' or 'Build a todo list component')"
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          rows={4}
-          style={{ 
-            width: '100%', 
-            fontSize: 16, 
-            padding: 10, 
-            background: '#27272a', 
-            color: '#f4f4f5', 
-            border: '1px solid #3f3f46', 
-            borderRadius: 8,
-            resize: 'vertical'
-          }}
-          disabled={loading}
-        />
-        <button
-          type="submit"
-          disabled={loading || !prompt.trim()}
-          style={{
-            marginTop: 10,
-            background: loading ? '#52525b' : '#2563eb',
-            color: '#f4f4f5',
-            border: 'none',
-            borderRadius: 8,
-            padding: '12px 24px',
-            fontWeight: 600,
-            fontSize: 16,
-            cursor: loading ? 'not-allowed' : 'pointer',
-            transition: 'background 0.2s',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-          }}
-        >
-          {loading ? 'Generating...' : 'Generate Component'}
-        </button>
-      </form>
-
-      {error && (
-        <div style={{ 
-          color: '#f87171', 
-          background: '#3f1f1f', 
-          padding: '12px', 
-          borderRadius: '8px', 
-          marginBottom: '20px',
-          border: '1px solid #991b1b'
-        }}>
-          Error: {error}
-        </div>
-      )}
-
-      {rawCode && (
-        <div style={{ border: '1px solid #3f3f46', borderRadius: 8, overflow: 'hidden', background: '#27272a' }}>
-          {/* Tab Navigation */}
-          <div style={{ display: 'flex', borderBottom: '1px solid #3f3f46', background: '#1f1f23' }}>
-            <button
-              style={{
-                padding: '12px 16px',
-                fontSize: 14,
-                fontWeight: 500,
-                background: activeTab === 'preview' ? '#2563eb' : 'transparent',
-                color: activeTab === 'preview' ? '#ffffff' : '#a1a1aa',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
-              onClick={() => setActiveTab('preview')}
-            >
-              Preview
-            </button>
-            <button
-              style={{
-                padding: '12px 16px',
-                fontSize: 14,
-                fontWeight: 500,
-                background: activeTab === 'code' ? '#2563eb' : 'transparent',
-                color: activeTab === 'code' ? '#ffffff' : '#a1a1aa',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
-              onClick={() => setActiveTab('code')}
-            >
-              Code
-            </button>
-          </div>
-
-          {/* Tab Content */}
-          <div style={{ padding: 24 }}>
-            {activeTab === 'preview' ? (
-              <div>
-                <h3 style={{ color: '#f4f4f5', marginBottom: 16, fontSize: 18, fontWeight: 600 }}>Live Preview</h3>
-                <div style={{ 
-                  border: '1px solid #3f3f46', 
-                  borderRadius: 8, 
-                  padding: 24, 
-                  background: '#ffffff', 
-                  minHeight: 200,
-                  color: '#000000' // Reset color for the preview area
-                }}>
-                  <LiveProvider code={processedCode} scope={scope} noInline={true}>
-                    <LiveError style={{ 
-                      color: '#dc2626', 
-                      background: '#fef2f2', 
-                      padding: 12, 
-                      borderRadius: 6, 
-                      marginBottom: 16,
-                      border: '1px solid #fecaca'
-                    }} />
-                    <LivePreview />
-                  </LiveProvider>
-                </div>
-              </div>
-            ) : (
-              <div>
-                <h3 style={{ color: '#f4f4f5', marginBottom: 16, fontSize: 18, fontWeight: 600 }}>Generated Code</h3>
-                <LiveProvider code={processedCode} scope={scope} noInline={true}>
-                  <LiveEditor
-                    style={{
-                      backgroundColor: '#1e1e1e',
-                      fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
-                      fontSize: 14,
-                      minHeight: 300,
-                      borderRadius: 8,
-                      border: '1px solid #3f3f46',
-                    }}
-                  />
-                  <LiveError style={{ 
-                    color: '#dc2626', 
-                    background: '#fef2f2', 
-                    padding: 12, 
-                    borderRadius: 6, 
-                    marginTop: 16,
-                    border: '1px solid #fecaca'
-                  }} />
-                </LiveProvider>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Glowing orbs */}
+      <div style={{
+        position: 'absolute',
+        top: '10%',
+        left: '20%',
+        width: '300px',
+        height: '300px',
+        background: 'radial-gradient(circle, rgba(255, 0, 255, 0.3) 0%, transparent 70%)',
+        borderRadius: '50%',
+        filter: 'blur(40px)',
+        animation: 'float 6s ease-in-out infinite',
+        zIndex: 1
+      }} />
       
-      {/* Debug info */}
-      {rawCode && (
-        <details style={{ marginTop: 20, color: '#a1a1aa' }}>
-          <summary style={{ cursor: 'pointer', padding: '8px 0' }}>Debug: Raw Generated Code</summary>
-          <pre style={{ 
-            background: '#1f1f23', 
-            padding: 12, 
-            borderRadius: 6, 
-            overflow: 'auto',
-            fontSize: 12,
-            border: '1px solid #3f3f46'
+      <div style={{
+        position: 'absolute',
+        top: '60%',
+        right: '10%',
+        width: '200px',
+        height: '200px',
+        background: 'radial-gradient(circle, rgba(0, 255, 0, 0.2) 0%, transparent 70%)',
+        borderRadius: '50%',
+        filter: 'blur(30px)',
+        animation: 'float 8s ease-in-out infinite reverse',
+        zIndex: 1
+      }} />
+
+      <div style={{ 
+        maxWidth: '1200px', 
+        margin: 'auto', 
+        padding: '40px 20px',
+        position: 'relative',
+        zIndex: 2
+      }}>
+        {/* Title with neon glow */}
+        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+          <h1 style={{ 
+            fontSize: '3.5rem',
+            fontWeight: '900',
+            background: 'linear-gradient(45deg, #00ffff, #ff00ff, #00ff00)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            textShadow: '0 0 20px #00ffff, 0 0 40px #ff00ff, 0 0 60px #00ff00',
+            marginBottom: '10px',
+            letterSpacing: '2px',
+            animation: 'glow 2s ease-in-out infinite alternate'
           }}>
-            {rawCode}
-          </pre>
-        </details>
-      )}
+            ⚡ NEURAL CODEFORGE ⚡
+          </h1>
+          <p style={{
+            fontSize: '1.2rem',
+            color: '#00ffaa',
+            textShadow: '0 0 10px #00ffaa',
+            fontWeight: '300',
+            letterSpacing: '1px'
+          }}>
+            AI-POWERED COMPONENT SYNTHESIS ENGINE
+          </p>
+        </div>
+        
+        {/* Input form with cyberpunk styling */}
+        <form onSubmit={handleSubmit} style={{ marginBottom: '40px' }}>
+          <div style={{
+            background: 'linear-gradient(135deg, rgba(0,255,255,0.1) 0%, rgba(255,0,255,0.1) 100%)',
+            border: '2px solid #00ffff',
+            borderRadius: '15px',
+            padding: '25px',
+            boxShadow: '0 0 30px rgba(0,255,255,0.3), inset 0 0 30px rgba(255,0,255,0.1)',
+            backdropFilter: 'blur(10px)',
+            position: 'relative'
+          }}>
+            <div style={{
+              position: 'absolute',
+              top: '-1px',
+              left: '-1px',
+              right: '-1px',
+              bottom: '-1px',
+              background: 'linear-gradient(45deg, #00ffff, #ff00ff, #00ff00, #00ffff)',
+              borderRadius: '15px',
+              zIndex: -1,
+              animation: 'border-flow 3s linear infinite'
+            }} />
+            
+            <textarea
+              placeholder="⚡ INITIALIZE NEURAL PROMPT... (e.g., 'Synthesize quantum button matrix' or 'Generate neural todo protocol')"
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              rows={4}
+              style={{ 
+                width: '100%', 
+                fontSize: '16px', 
+                padding: '20px', 
+                background: 'rgba(0,0,0,0.8)', 
+                color: '#00ffff', 
+                border: '1px solid #00ffaa', 
+                borderRadius: '10px',
+                resize: 'vertical',
+                fontFamily: '"Courier New", monospace',
+                boxShadow: 'inset 0 0 20px rgba(0,255,255,0.2)',
+                outline: 'none'
+              }}
+              disabled={loading}
+              onFocus={(e) => {
+                e.target.style.border = '2px solid #ff00ff';
+                e.target.style.boxShadow = 'inset 0 0 30px rgba(255,0,255,0.3), 0 0 20px rgba(255,0,255,0.5)';
+              }}
+              onBlur={(e) => {
+                e.target.style.border = '1px solid #00ffaa';
+                e.target.style.boxShadow = 'inset 0 0 20px rgba(0,255,255,0.2)';
+              }}
+            />
+            
+            <button
+              type="submit"
+              disabled={loading || !prompt.trim()}
+              style={{
+                marginTop: '20px',
+                background: loading ? 'linear-gradient(45deg, #333, #555)' : 'linear-gradient(45deg, #ff00ff, #00ffff)',
+                color: '#000',
+                border: 'none',
+                borderRadius: '25px',
+                padding: '15px 40px',
+                fontWeight: '900',
+                fontSize: '16px',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                transition: 'all 0.3s ease',
+                boxShadow: loading ? 'none' : '0 0 30px rgba(255,0,255,0.6)',
+                textTransform: 'uppercase',
+                letterSpacing: '2px',
+                fontFamily: '"Orbitron", monospace',
+                animation: loading ? 'pulse 1s infinite' : 'none',
+                position: 'relative',
+                overflow: 'hidden'
+              }}
+              onMouseEnter={(e) => {
+                if (!loading) {
+                  e.target.style.transform = 'scale(1.05)';
+                  e.target.style.boxShadow = '0 0 50px rgba(0,255,255,0.8)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!loading) {
+                  e.target.style.transform = 'scale(1)';
+                  e.target.style.boxShadow = '0 0 30px rgba(255,0,255,0.6)';
+                }
+              }}
+            >
+              {loading ? (
+                <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span style={{ 
+                    width: '20px', 
+                    height: '20px', 
+                    border: '3px solid #00ffff',
+                    borderTop: '3px solid transparent',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite'
+                  }} />
+                  NEURAL SYNTHESIS...
+                </span>
+              ) : (
+                '⚡ FORGE COMPONENT ⚡'
+              )}
+            </button>
+          </div>
+        </form>
+
+        {/* Error display */}
+        {error && (
+          <div style={{ 
+            color: '#ff0066', 
+            background: 'linear-gradient(135deg, rgba(255,0,102,0.2), rgba(255,0,0,0.1))',
+            padding: '20px', 
+            borderRadius: '15px', 
+            marginBottom: '30px',
+            border: '2px solid #ff0066',
+            boxShadow: '0 0 30px rgba(255,0,102,0.4)',
+            textAlign: 'center',
+            fontWeight: 'bold',
+            animation: 'error-pulse 2s ease-in-out infinite'
+          }}>
+            ⚠️ NEURAL ERROR: {error}
+          </div>
+        )}
+
+        {/* Results area */}
+        {rawCode && (
+          <div style={{ 
+            border: '2px solid #00ffaa', 
+            borderRadius: '20px', 
+            overflow: 'hidden', 
+            background: 'linear-gradient(135deg, rgba(0,0,0,0.9), rgba(0,20,40,0.9))',
+            boxShadow: '0 0 50px rgba(0,255,170,0.3)',
+            position: 'relative'
+          }}>
+            {/* Animated border */}
+            <div style={{
+              position: 'absolute',
+              top: '0',
+              left: '0',
+              right: '0',
+              height: '2px',
+              background: 'linear-gradient(90deg, transparent, #00ffff, transparent)',
+              animation: 'scan 2s linear infinite'
+            }} />
+            
+            {/* Tab Navigation */}
+            <div style={{ 
+              display: 'flex', 
+              borderBottom: '2px solid #00ffaa', 
+              background: 'linear-gradient(135deg, rgba(0,0,0,0.9), rgba(0,30,60,0.9))'
+            }}>
+              <button
+                style={{
+                  padding: '20px 30px',
+                  fontSize: '16px',
+                  fontWeight: '700',
+                  background: activeTab === 'preview' 
+                    ? 'linear-gradient(45deg, #00ffff, #ff00ff)' 
+                    : 'transparent',
+                  color: activeTab === 'preview' ? '#000' : '#00ffaa',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px',
+                  fontFamily: '"Orbitron", monospace',
+                  boxShadow: activeTab === 'preview' ? '0 0 20px rgba(0,255,255,0.5)' : 'none',
+                  position: 'relative'
+                }}
+                onClick={() => setActiveTab('preview')}
+                onMouseEnter={(e) => {
+                  if (activeTab !== 'preview') {
+                    e.target.style.color = '#00ffff';
+                    e.target.style.textShadow = '0 0 10px #00ffff';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (activeTab !== 'preview') {
+                    e.target.style.color = '#00ffaa';
+                    e.target.style.textShadow = 'none';
+                  }
+                }}
+              >
+                📺 NEURAL PREVIEW
+              </button>
+              <button
+                style={{
+                  padding: '20px 30px',
+                  fontSize: '16px',
+                  fontWeight: '700',
+                  background: activeTab === 'code' 
+                    ? 'linear-gradient(45deg, #00ffff, #ff00ff)' 
+                    : 'transparent',
+                  color: activeTab === 'code' ? '#000' : '#00ffaa',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px',
+                  fontFamily: '"Orbitron", monospace',
+                  boxShadow: activeTab === 'code' ? '0 0 20px rgba(0,255,255,0.5)' : 'none'
+                }}
+                onClick={() => setActiveTab('code')}
+                onMouseEnter={(e) => {
+                  if (activeTab !== 'code') {
+                    e.target.style.color = '#00ffff';
+                    e.target.style.textShadow = '0 0 10px #00ffff';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (activeTab !== 'code') {
+                    e.target.style.color = '#00ffaa';
+                    e.target.style.textShadow = 'none';
+                  }
+                }}
+              >
+                🔬 SOURCE CODE
+              </button>
+            </div>
+
+            {/* Tab Content */}
+            <div style={{ padding: '40px' }}>
+              {activeTab === 'preview' ? (
+                <div>
+                  <h3 style={{ 
+                    color: '#00ffff', 
+                    marginBottom: '25px', 
+                    fontSize: '24px', 
+                    fontWeight: '700',
+                    textShadow: '0 0 15px #00ffff',
+                    textTransform: 'uppercase',
+                    letterSpacing: '2px'
+                  }}>
+                    ⚡ LIVE NEURAL PREVIEW ⚡
+                  </h3>
+                  <div style={{ 
+                    border: '2px solid #ff00ff', 
+                    borderRadius: '15px', 
+                    padding: '30px', 
+                    background: 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(240,240,255,0.95))', 
+                    minHeight: '300px',
+                    color: '#000',
+                    boxShadow: '0 0 30px rgba(255,0,255,0.4), inset 0 0 30px rgba(0,255,255,0.1)',
+                    position: 'relative',
+                    overflow: 'hidden'
+                  }}>
+                    <div style={{
+                      position: 'absolute',
+                      top: '0',
+                      left: '0',
+                      right: '0',
+                      bottom: '0',
+                      background: 'linear-gradient(45deg, transparent 49%, rgba(0,255,255,0.1) 50%, transparent 51%)',
+                      animation: 'scan-diagonal 3s linear infinite',
+                      pointerEvents: 'none'
+                    }} />
+                    <LiveProvider code={processedCode} scope={scope} noInline={true}>
+                      <LiveError style={{ 
+                        color: '#dc2626', 
+                        background: 'rgba(220,38,38,0.1)', 
+                        padding: '15px', 
+                        borderRadius: '10px', 
+                        marginBottom: '20px',
+                        border: '2px solid #dc2626',
+                        boxShadow: '0 0 20px rgba(220,38,38,0.3)'
+                      }} />
+                      <LivePreview />
+                    </LiveProvider>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <h3 style={{ 
+                    color: '#00ffff', 
+                    marginBottom: '25px', 
+                    fontSize: '24px', 
+                    fontWeight: '700',
+                    textShadow: '0 0 15px #00ffff',
+                    textTransform: 'uppercase',
+                    letterSpacing: '2px'
+                  }}>
+                    🔬 NEURAL SOURCE CODE 🔬
+                  </h3>
+                  <div style={{
+                    border: '2px solid #00ffaa',
+                    borderRadius: '15px',
+                    overflow: 'hidden',
+                    background: 'rgba(0,0,0,0.9)',
+                    boxShadow: '0 0 30px rgba(0,255,170,0.3)'
+                  }}>
+                    <LiveProvider code={processedCode} scope={scope} noInline={true}>
+                      <LiveEditor
+                        style={{
+                          backgroundColor: '#0a0a0a',
+                          fontFamily: '"Courier New", "Fira Code", monospace',
+                          fontSize: '14px',
+                          minHeight: '400px',
+                          color: '#00ffaa',
+                          lineHeight: '1.6'
+                        }}
+                      />
+                      <LiveError style={{ 
+                        color: '#ff0066', 
+                        background: 'rgba(255,0,102,0.1)', 
+                        padding: '15px', 
+                        margin: '20px',
+                        borderRadius: '10px',
+                        border: '2px solid #ff0066',
+                        boxShadow: '0 0 20px rgba(255,0,102,0.3)'
+                      }} />
+                    </LiveProvider>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {/* Debug info with cyberpunk styling */}
+        {rawCode && (
+          <details style={{ 
+            marginTop: '30px', 
+            color: '#666',
+            background: 'rgba(0,0,0,0.5)',
+            padding: '20px',
+            borderRadius: '10px',
+            border: '1px solid #333'
+          }}>
+            <summary style={{ 
+              cursor: 'pointer', 
+              padding: '10px 0',
+              color: '#00ffaa',
+              fontWeight: 'bold',
+              textTransform: 'uppercase'
+            }}>
+              🔍 DEBUG: Raw Neural Output
+            </summary>
+            <pre style={{ 
+              background: '#0a0a0a', 
+              padding: '20px', 
+              borderRadius: '10px', 
+              overflow: 'auto',
+              fontSize: '12px',
+              border: '1px solid #333',
+              color: '#00ffaa',
+              fontFamily: '"Courier New", monospace'
+            }}>
+              {rawCode}
+            </pre>
+          </details>
+        )}
+      </div>
+
+      {/* CSS Animations */}
+      <style jsx>{`
+        @keyframes glow {
+          0%, 100% { text-shadow: 0 0 20px #00ffff, 0 0 40px #ff00ff, 0 0 60px #00ff00; }
+          50% { text-shadow: 0 0 30px #ff00ff, 0 0 50px #00ffff, 0 0 70px #00ff00; }
+        }
+        
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        
+        @keyframes grid-move {
+          0% { transform: translate(0, 0); }
+          100% { transform: translate(50px, 50px); }
+        }
+        
+        @keyframes border-flow {
+          0% { background-position: 0% 0%; }
+          100% { background-position: 100% 100%; }
+        }
+        
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.7; }
+        }
+        
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes error-pulse {
+          0%, 100% { box-shadow: 0 0 30px rgba(255,0,102,0.4); }
+          50% { box-shadow: 0 0 50px rgba(255,0,102,0.8); }
+        }
+        
+        @keyframes scan {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+        
+        @keyframes scan-diagonal {
+          0% { transform: translateX(-100%) translateY(-100%); }
+          100% { transform: translateX(100%) translateY(100%); }
+        }
+      `}</style>
     </div>
   );
 }
