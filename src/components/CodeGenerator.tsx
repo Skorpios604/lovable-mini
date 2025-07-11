@@ -76,7 +76,9 @@ render(<${componentName} />);`;
       const res = await fetch('/api/groq', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt }),
+        body: JSON.stringify({ 
+          prompt: prompt + " (IMPORTANT: Use inline styles instead of Tailwind classes. Example: style={{backgroundColor: '#ef4444', padding: '12px 24px', borderRadius: '8px'}} instead of className='bg-red-500 px-6 py-3 rounded-lg')" 
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Something went wrong');
