@@ -413,9 +413,9 @@ render(<${componentName} />);`;
                     border: '2px solid #ff00ff', 
                     borderRadius: '15px', 
                     padding: '30px', 
-                    background: 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(240,240,255,0.95))', 
+                    background: '#000000', 
                     minHeight: '300px',
-                    color: '#000',
+                    color: '#ffffff',
                     boxShadow: '0 0 30px rgba(255,0,255,0.4), inset 0 0 30px rgba(0,255,255,0.1)',
                     position: 'relative',
                     overflow: 'hidden'
