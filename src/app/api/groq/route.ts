@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     }
 
     const enhancedPrompt = `
-You are creating a React functional component. Follow these rules EXACTLY:
+You are an expert React developer creating visually stunning, modern components. Create something that would make users say "wow" and feel premium.
 
 Request: "${prompt}"
 
@@ -22,91 +22,270 @@ CRITICAL RULES:
 1. Return ONLY a complete React function component
 2. Use function declaration: function ComponentName() { ... }
 3. NO import statements, NO export statements
-4. Use React hooks if needed (useState, useEffect available in scope)
-5. Use Tailwind CSS classes for ALL styling
-6. Make components interactive with proper event handlers
-7. Ensure all click handlers and form submissions work properly
-8. Component must be complete and functional
+4. Available hooks: useState, useEffect, useMemo, useCallback
+5. Available libraries: React, Lucide icons, Three.js, D3, Recharts, Tone.js, Lodash
+6. Use ONLY inline styles (no Tailwind classes)
+7. Focus on VISUAL IMPACT and MODERN AESTHETICS
 
-EXAMPLE (for a button):
-function MyButton() {
-  const [clicked, setClicked] = useState(false);
+DESIGN PRINCIPLES:
+- Use gradients, shadows, and glassmorphism effects
+- Add smooth animations and transitions
+- Include hover effects and micro-interactions
+- Use modern color palettes (consider dark themes)
+- Add depth with layering and shadows
+- Include loading states and smooth state transitions
+- Make it feel premium and cutting-edge
+
+STYLING GUIDELINES:
+- Use CSS-in-JS with style objects ONLY
+- NO styled-jsx, NO <style> tags, NO external CSS
+- Use inline styles with CSS animations via animation property
+- Add keyframes using CSS strings in the animation property
+- Use transitions for smooth hover effects
+- Include responsive design with conditional styling
+
+EXAMPLE (Advanced Interactive Card):
+function ModernCard() {
+  const [isHovered, setIsHovered] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [pulse, setPulse] = useState(0);
   
-  const handleClick = () => {
-    setClicked(!clicked);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPulse(prev => (prev + 1) % 100);
+    }, 50);
+    return () => clearInterval(interval);
+  }, []);
+  
+  const handleAction = async () => {
+    setIsLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    setIsLoading(false);
   };
   
   return (
-    <button 
-      onClick={handleClick}
-      className={\`px-6 py-3 rounded-lg font-medium transition-all duration-200 \${
-        clicked 
-          ? 'bg-green-500 text-white hover:bg-green-600' 
-          : 'bg-blue-500 text-white hover:bg-blue-600'
-      }\`}
+    <div 
+      style={{
+        position: 'relative',
+        width: '400px',
+        height: '250px',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        borderRadius: '20px',
+        padding: '30px',
+        boxShadow: isHovered 
+          ? '0 25px 50px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.1)'
+          : '0 15px 35px rgba(0,0,0,0.1), 0 0 0 1px rgba(255,255,255,0.05)',
+        cursor: 'pointer',
+        transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+        transform: isHovered ? 'translateY(-8px) scale(1.02)' : 'translateY(0) scale(1)',
+        overflow: 'hidden',
+        color: 'white',
+        fontFamily: 'system-ui, -apple-system, sans-serif'
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      {clicked ? 'Clicked!' : 'Click me'}
-    </button>
-  );
-}
-
-EXAMPLE (for a todo list):
-function TodoList() {
-  const [todos, setTodos] = useState([]);
-  const [inputValue, setInputValue] = useState('');
-  
-  const addTodo = () => {
-    if (inputValue.trim()) {
-      setTodos([...todos, { id: Date.now(), text: inputValue, completed: false }]);
-      setInputValue('');
-    }
-  };
-  
-  const toggleTodo = (id) => {
-    setTodos(todos.map(todo => 
-      todo.id === id ? { ...todo, completed: !todo.completed } : todo
-    ));
-  };
-  
-  return (
-    <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-lg">
-      <h2 className="text-2xl font-bold mb-4">Todo List</h2>
-      <div className="flex gap-2 mb-4">
-        <input
-          type="text"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && addTodo()}
-          placeholder="Add a todo..."
-          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+      {/* Animated background pattern */}
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: \`radial-gradient(circle at \${20 + Math.sin(pulse * 0.1) * 10}% 50%, rgba(255,255,255,0.1) 0%, transparent 50%)\`,
+        transform: \`rotate(\${pulse * 2}deg)\`,
+        transition: 'transform 0.1s ease'
+      }} />
+      
+      <div style={{
+        position: 'relative',
+        zIndex: 2,
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between'
+      }}>
+        <div>
+          <h3 style={{
+            fontSize: '24px',
+            fontWeight: '700',
+            marginBottom: '12px',
+            background: 'linear-gradient(45deg, #fff, #f0f0f0)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent'
+          }}>
+            Modern Component
+          </h3>
+          <p style={{
+            fontSize: '16px',
+            opacity: 0.9,
+            lineHeight: '1.5'
+          }}>
+            This is a premium component with smooth animations and beautiful styling.
+          </p>
+        </div>
+        
         <button
-          onClick={addTodo}
-          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+          onClick={handleAction}
+          disabled={isLoading}
+          style={{
+            background: isLoading 
+              ? 'rgba(255,255,255,0.2)'
+              : 'linear-gradient(45deg, rgba(255,255,255,0.2), rgba(255,255,255,0.1))',
+            border: '1px solid rgba(255,255,255,0.3)',
+            borderRadius: '12px',
+            padding: '12px 24px',
+            color: 'white',
+            fontWeight: '600',
+            cursor: isLoading ? 'not-allowed' : 'pointer',
+            transition: 'all 0.3s ease',
+            backdropFilter: 'blur(10px)',
+            fontSize: '14px',
+            opacity: isLoading ? 0.7 : 1,
+            transform: isLoading ? 'scale(0.98)' : 'scale(1)'
+          }}
         >
-          Add
+          {isLoading ? (
+            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{
+                width: '16px',
+                height: '16px',
+                border: '2px solid rgba(255,255,255,0.3)',
+                borderTop: '2px solid white',
+                borderRadius: '50%',
+                transform: \`rotate(\${pulse * 10}deg)\`,
+                transition: 'transform 0.1s ease'
+              }} />
+              Processing...
+            </span>
+          ) : (
+            'Take Action'
+          )}
         </button>
       </div>
-      <ul className="space-y-2">
-        {todos.map(todo => (
-          <li
-            key={todo.id}
-            onClick={() => toggleTodo(todo.id)}
-            className={\`p-3 rounded-md cursor-pointer transition-colors \${
-              todo.completed
-                ? 'bg-green-100 text-green-800 line-through'
-                : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-            }\`}
-          >
-            {todo.text}
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }
 
-Now create a component for: "${prompt}"`;
+EXAMPLE (Interactive Button with Ripple Effect):
+function InteractiveButton() {
+  const [isPressed, setIsPressed] = useState(false);
+  const [ripples, setRipples] = useState([]);
+  const [animationFrame, setAnimationFrame] = useState(0);
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setAnimationFrame(prev => prev + 1);
+    }, 16);
+    return () => clearInterval(interval);
+  }, []);
+  
+  const createRipple = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    const newRipple = {
+      id: Date.now(),
+      x,
+      y,
+      startTime: Date.now()
+    };
+    
+    setRipples(prev => [...prev, newRipple]);
+    setTimeout(() => {
+      setRipples(prev => prev.filter(r => r.id !== newRipple.id));
+    }, 1000);
+  };
+  
+  return (
+    <button
+      onMouseDown={() => setIsPressed(true)}
+      onMouseUp={() => setIsPressed(false)}
+      onMouseLeave={() => setIsPressed(false)}
+      onClick={createRipple}
+      style={{
+        position: 'relative',
+        width: '200px',
+        height: '60px',
+        background: 'linear-gradient(145deg, #667eea, #764ba2)',
+        border: 'none',
+        borderRadius: '30px',
+        color: 'white',
+        fontSize: '16px',
+        fontWeight: '600',
+        cursor: 'pointer',
+        overflow: 'hidden',
+        boxShadow: isPressed
+          ? 'inset 0 4px 8px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.2)'
+          : '0 8px 16px rgba(0,0,0,0.2), 0 4px 8px rgba(0,0,0,0.1)',
+        transform: isPressed ? 'scale(0.98)' : 'scale(1)',
+        transition: 'all 0.15s ease',
+        fontFamily: 'system-ui, -apple-system, sans-serif'
+      }}
+    >
+      <span style={{
+        position: 'relative',
+        zIndex: 2,
+        display: 'block',
+        transform: isPressed ? 'translateY(1px)' : 'translateY(0)',
+        transition: 'transform 0.15s ease'
+      }}>
+        Interactive Button
+      </span>
+      
+      {/* Animated ripple effects */}
+      {ripples.map(ripple => {
+        const elapsed = (Date.now() - ripple.startTime) / 1000;
+        const scale = Math.min(elapsed * 20, 20);
+        const opacity = Math.max(0.6 - elapsed, 0);
+        
+        return (
+          <div
+            key={ripple.id}
+            style={{
+              position: 'absolute',
+              left: ripple.x,
+              top: ripple.y,
+              width: '4px',
+              height: '4px',
+              background: 'rgba(255,255,255,0.6)',
+              borderRadius: '50%',
+              transform: \`translate(-50%, -50%) scale(\${scale})\`,
+              opacity,
+              pointerEvents: 'none',
+              transition: 'transform 0.1s ease, opacity 0.1s ease'
+            }}
+          />
+        );
+      })}
+    </button>
+  );
+}
+
+AVAILABLE LIBRARIES:
+- Lucide React: import { IconName } from 'lucide-react' (use for beautiful icons)
+- Three.js: Create 3D scenes and interactive graphics
+- D3: Data visualization and complex animations
+- Recharts: Beautiful charts and graphs
+- Tone.js: Audio synthesis and music
+- Lodash: Utility functions for data manipulation
+
+COMPONENT CATEGORIES TO EXCEL AT:
+1. Interactive Cards & Panels
+2. Data Visualization Components
+3. 3D Interactive Elements
+4. Audio/Music Players
+5. Image Galleries & Carousels
+6. Form Components with Validation
+7. Dashboard Widgets
+8. Game-like Interactive Elements
+9. Loading States & Animations
+10. Social Media Components
+
+Now create a visually stunning, modern component for: "${prompt}"
+
+Make it feel premium, interactive, and something users would be excited to use. Push the boundaries of what's possible with modern web technologies!`;
 
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -119,21 +298,28 @@ Now create a component for: "${prompt}"`;
         messages: [
           {
             role: 'system',
-            content: `You are an expert React developer. You MUST:
+            content: `You are a world-class React developer and UI/UX designer. You create components that are:
+            - Visually stunning and modern
+            - Highly interactive with smooth animations
+            - Premium feeling with attention to detail
+            - Cutting-edge in design and functionality
+            
+            REQUIREMENTS:
             1. Return ONLY a complete React function component
             2. NO explanations, NO markdown, NO backticks
-            3. Use function declaration syntax: function ComponentName() { ... }
-            4. Make components interactive with working event handlers
-            5. Use Tailwind CSS for ALL styling
-            6. Ensure all functionality works (buttons click, forms submit, etc.)
-            7. Component should be complete and render immediately
-            8. Use proper React patterns and hooks
-            9. Handle edge cases and user interactions properly`,
+            3. Use function declaration: function ComponentName() { ... }
+            4. Use ONLY inline styles (no CSS classes)
+            5. Include modern animations and interactions
+            6. Make it feel premium and polished
+            7. Use gradients, shadows, and modern effects
+            8. Include loading states and micro-interactions
+            9. Ensure all functionality works perfectly
+            10. Push creative boundaries while maintaining usability`,
           },
           { role: 'user', content: enhancedPrompt },
         ],
-        temperature: 0.7,
-        max_tokens: 2048,
+        temperature: 0.8,
+        max_tokens: 3000,
         stop: ['```', 'export', 'import'],
       }),
     });
@@ -148,19 +334,13 @@ Now create a component for: "${prompt}"`;
     
     // Clean up the generated code
     generatedCode = generatedCode.trim();
-    
-    // Remove any potential markdown or code blocks
     generatedCode = generatedCode.replace(/```(?:jsx?|tsx?|javascript|typescript)?\n?/g, '');
     generatedCode = generatedCode.replace(/```/g, '');
-    
-    // Remove import/export statements if they slipped through
     generatedCode = generatedCode.replace(/import\s+.*?from\s+['"].*?['"];?\s*/g, '');
     generatedCode = generatedCode.replace(/export\s+default\s+/g, '');
     generatedCode = generatedCode.replace(/export\s+/g, '');
     
-    // If it doesn't start with function, try to wrap it properly
     if (!generatedCode.includes('function ') && !generatedCode.includes('const ') && !generatedCode.includes('=>')) {
-      // If it looks like JSX, wrap it in a component
       if (generatedCode.includes('<') && generatedCode.includes('>')) {
         generatedCode = `function GeneratedComponent() {
   return (
