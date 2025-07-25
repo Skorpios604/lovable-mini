@@ -104,7 +104,7 @@ render(<${componentName} />);`;
 
       {/* DotGrid Background */}
       <DotGrid 
-        dotSize={5}
+        dotSize={4}
         gap={18}
         baseColor="#A275F0"
         activeColor="#ff00ff"
@@ -120,7 +120,8 @@ render(<${componentName} />);`;
           left: 0,
           right: 0,
           bottom: 0,
-          zIndex: 1
+          zIndex: 1,
+          background: '#000', // Set background behind dots to black
         }}
       />
 
