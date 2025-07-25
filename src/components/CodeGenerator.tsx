@@ -104,14 +104,16 @@ render(<${componentName} />);`;
 
       {/* DotGrid Background */}
       <DotGrid 
-        dotSize={12}
-        gap={28}
-        baseColor="#00ffff"
+        dotSize={5}
+        gap={18}
+        baseColor="#A275F0"
         activeColor="#ff00ff"
-        proximity={120}
-        speedTrigger={80}
-        shockRadius={200}
-        shockStrength={4}
+        proximity={175}
+        speedTrigger={100}
+        shockRadius={300}
+        shockStrength={20}
+        resistance={300}
+        returnDuration={10}
         style={{
           position: 'absolute',
           top: 0,
@@ -121,7 +123,7 @@ render(<${componentName} />);`;
           zIndex: 1
         }}
       />
-      
+
       <div style={{ 
         maxWidth: '1200px', 
         margin: 'auto', 
