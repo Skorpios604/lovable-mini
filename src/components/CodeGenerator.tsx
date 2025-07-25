@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import DotGrid from './DotGrid'; // Adjust the path based on where you put the file
 import { LiveProvider, LiveEditor, LiveError, LivePreview } from 'react-live';
 
 // Available scope for the live preview
@@ -100,49 +101,27 @@ render(<${componentName} />);`;
       position: 'relative',
       overflow: 'hidden'
     }}>
-      {/* Animated background grid */}
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundImage: `
-          linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px)
-        `,
-        backgroundSize: '50px 50px',
-        animation: 'grid-move 20s linear infinite',
-        zIndex: 1
-      }} />
-      
-      {/* Glowing orbs */}
-      <div style={{
-        position: 'absolute',
-        top: '10%',
-        left: '20%',
-        width: '300px',
-        height: '300px',
-        background: 'radial-gradient(circle, rgba(255, 0, 255, 0.3) 0%, transparent 70%)',
-        borderRadius: '50%',
-        filter: 'blur(40px)',
-        animation: 'float 6s ease-in-out infinite',
-        zIndex: 1
-      }} />
-      
-      <div style={{
-        position: 'absolute',
-        top: '60%',
-        right: '10%',
-        width: '200px',
-        height: '200px',
-        background: 'radial-gradient(circle, rgba(0, 255, 0, 0.2) 0%, transparent 70%)',
-        borderRadius: '50%',
-        filter: 'blur(30px)',
-        animation: 'float 8s ease-in-out infinite reverse',
-        zIndex: 1
-      }} />
 
+      {/* DotGrid Background */}
+      <DotGrid 
+        dotSize={12}
+        gap={28}
+        baseColor="#00ffff"
+        activeColor="#ff00ff"
+        proximity={120}
+        speedTrigger={80}
+        shockRadius={200}
+        shockStrength={4}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 1
+        }}
+      />
+      
       <div style={{ 
         maxWidth: '1200px', 
         margin: 'auto', 
@@ -535,17 +514,7 @@ render(<${componentName} />);`;
           0%, 100% { text-shadow: 0 0 20px #00ffff, 0 0 40px #ff00ff, 0 0 60px #00ff00; }
           50% { text-shadow: 0 0 30px #ff00ff, 0 0 50px #00ffff, 0 0 70px #00ff00; }
         }
-        
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-20px) rotate(180deg); }
-        }
-        
-        @keyframes grid-move {
-          0% { transform: translate(0, 0); }
-          100% { transform: translate(50px, 50px); }
-        }
-        
+      
         @keyframes border-flow {
           0% { background-position: 0% 0%; }
           100% { background-position: 100% 100%; }

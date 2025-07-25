@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "gsap": "^3.13.0",
     "next": "15.3.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -25,5 +26,4 @@
     "tailwindcss": "^4",
     "typescript": "^5"
   }
-  
 }
