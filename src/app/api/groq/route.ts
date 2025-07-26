@@ -19,249 +19,54 @@ You are an expert React developer creating visually stunning, modern components.
 Request: "${prompt}"
 
 CRITICAL RULES:
-1. Return ONLY a complete React function component
-2. Use function declaration: function ComponentName() { ... }
+1. Return a COMPLETE multi-component React application
+2. Use function declarations: function ComponentName() { ... }
 3. NO import statements, NO export statements
 4. Available hooks: useState, useEffect, useMemo, useCallback
 5. Available libraries: React, Lucide icons, Three.js, D3, Recharts, Tone.js, Lodash
 6. Use ONLY inline styles (no Tailwind classes)
-7. Focus on VISUAL IMPACT and MODERN AESTHETICS
+7. Create a FULL APPLICATION with multiple components and features
+
+APPLICATION STRUCTURE:
+- Main App component that orchestrates everything
+- Multiple child components for different features
+- Complete functionality, not just UI
+- Navigation between different views/sections
+- Data management with state
+- Interactive features throughout
 
 DESIGN PRINCIPLES:
-- Use gradients, shadows, and glassmorphism effects
-- Add smooth animations and transitions
-- Include hover effects and micro-interactions
-- Use modern color palettes (consider dark themes)
-- Add depth with layering and shadows
-- Include loading states and smooth state transitions
-- Make it feel premium and cutting-edge
+- Modern, premium aesthetics with dark themes
+- Smooth animations and transitions throughout
+- Responsive design that works on all devices
+- Micro-interactions and hover effects
+- Progressive disclosure of information
+- Loading states and smooth state transitions
+- Use glassmorphism, gradients, and depth
 
-STYLING GUIDELINES:
-- Use CSS-in-JS with style objects ONLY
-- NO styled-jsx, NO <style> tags, NO external CSS
-- Use inline styles with CSS animations via animation property
-- Add keyframes using CSS strings in the animation property
-- Use transitions for smooth hover effects
-- Include responsive design with conditional styling
+EXAMPLE APPLICATION TYPES:
+1. Dashboard Applications (analytics, admin panels)
+2. Social Media Apps (feeds, profiles, messaging)
+3. E-commerce Applications (product catalogs, shopping carts)
+4. Content Management Systems
+5. Project Management Tools
+6. Music/Media Players
+7. Gaming Applications
+8. Financial Applications
+9. Learning Platforms
+10. Creative Tools
 
-EXAMPLE (Advanced Interactive Card):
-function ModernCard() {
-  const [isHovered, setIsHovered] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [pulse, setPulse] = useState(0);
-  
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setPulse(prev => (prev + 1) % 100);
-    }, 50);
-    return () => clearInterval(interval);
-  }, []);
-  
-  const handleAction = async () => {
-    setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setIsLoading(false);
-  };
-  
-  return (
-    <div 
-      style={{
-        position: 'relative',
-        width: '400px',
-        height: '250px',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        borderRadius: '20px',
-        padding: '30px',
-        boxShadow: isHovered 
-          ? '0 25px 50px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.1)'
-          : '0 15px 35px rgba(0,0,0,0.1), 0 0 0 1px rgba(255,255,255,0.05)',
-        cursor: 'pointer',
-        transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-        transform: isHovered ? 'translateY(-8px) scale(1.02)' : 'translateY(0) scale(1)',
-        overflow: 'hidden',
-        color: 'white',
-        fontFamily: 'system-ui, -apple-system, sans-serif'
-      }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      {/* Animated background pattern */}
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: \`radial-gradient(circle at \${20 + Math.sin(pulse * 0.1) * 10}% 50%, rgba(255,255,255,0.1) 0%, transparent 50%)\`,
-        transform: \`rotate(\${pulse * 2}deg)\`,
-        transition: 'transform 0.1s ease'
-      }} />
-      
-      <div style={{
-        position: 'relative',
-        zIndex: 2,
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between'
-      }}>
-        <div>
-          <h3 style={{
-            fontSize: '24px',
-            fontWeight: '700',
-            marginBottom: '12px',
-            background: 'linear-gradient(45deg, #fff, #f0f0f0)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent'
-          }}>
-            Modern Component
-          </h3>
-          <p style={{
-            fontSize: '16px',
-            opacity: 0.9,
-            lineHeight: '1.5'
-          }}>
-            This is a premium component with smooth animations and beautiful styling.
-          </p>
-        </div>
-        
-        <button
-          onClick={handleAction}
-          disabled={isLoading}
-          style={{
-            background: isLoading 
-              ? 'rgba(255,255,255,0.2)'
-              : 'linear-gradient(45deg, rgba(255,255,255,0.2), rgba(255,255,255,0.1))',
-            border: '1px solid rgba(255,255,255,0.3)',
-            borderRadius: '12px',
-            padding: '12px 24px',
-            color: 'white',
-            fontWeight: '600',
-            cursor: isLoading ? 'not-allowed' : 'pointer',
-            transition: 'all 0.3s ease',
-            backdropFilter: 'blur(10px)',
-            fontSize: '14px',
-            opacity: isLoading ? 0.7 : 1,
-            transform: isLoading ? 'scale(0.98)' : 'scale(1)'
-          }}
-        >
-          {isLoading ? (
-            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{
-                width: '16px',
-                height: '16px',
-                border: '2px solid rgba(255,255,255,0.3)',
-                borderTop: '2px solid white',
-                borderRadius: '50%',
-                transform: \`rotate(\${pulse * 10}deg)\`,
-                transition: 'transform 0.1s ease'
-              }} />
-              Processing...
-            </span>
-          ) : (
-            'Take Action'
-          )}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-EXAMPLE (Interactive Button with Ripple Effect):
-function InteractiveButton() {
-  const [isPressed, setIsPressed] = useState(false);
-  const [ripples, setRipples] = useState([]);
-  const [animationFrame, setAnimationFrame] = useState(0);
-  
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setAnimationFrame(prev => prev + 1);
-    }, 16);
-    return () => clearInterval(interval);
-  }, []);
-  
-  const createRipple = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    const newRipple = {
-      id: Date.now(),
-      x,
-      y,
-      startTime: Date.now()
-    };
-    
-    setRipples(prev => [...prev, newRipple]);
-    setTimeout(() => {
-      setRipples(prev => prev.filter(r => r.id !== newRipple.id));
-    }, 1000);
-  };
-  
-  return (
-    <button
-      onMouseDown={() => setIsPressed(true)}
-      onMouseUp={() => setIsPressed(false)}
-      onMouseLeave={() => setIsPressed(false)}
-      onClick={createRipple}
-      style={{
-        position: 'relative',
-        width: '200px',
-        height: '60px',
-        background: 'linear-gradient(145deg, #667eea, #764ba2)',
-        border: 'none',
-        borderRadius: '30px',
-        color: 'white',
-        fontSize: '16px',
-        fontWeight: '600',
-        cursor: 'pointer',
-        overflow: 'hidden',
-        boxShadow: isPressed
-          ? 'inset 0 4px 8px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.2)'
-          : '0 8px 16px rgba(0,0,0,0.2), 0 4px 8px rgba(0,0,0,0.1)',
-        transform: isPressed ? 'scale(0.98)' : 'scale(1)',
-        transition: 'all 0.15s ease',
-        fontFamily: 'system-ui, -apple-system, sans-serif'
-      }}
-    >
-      <span style={{
-        position: 'relative',
-        zIndex: 2,
-        display: 'block',
-        transform: isPressed ? 'translateY(1px)' : 'translateY(0)',
-        transition: 'transform 0.15s ease'
-      }}>
-        Interactive Button
-      </span>
-      
-      {/* Animated ripple effects */}
-      {ripples.map(ripple => {
-        const elapsed = (Date.now() - ripple.startTime) / 1000;
-        const scale = Math.min(elapsed * 20, 20);
-        const opacity = Math.max(0.6 - elapsed, 0);
-        
-        return (
-          <div
-            key={ripple.id}
-            style={{
-              position: 'absolute',
-              left: ripple.x,
-              top: ripple.y,
-              width: '4px',
-              height: '4px',
-              background: 'rgba(255,255,255,0.6)',
-              borderRadius: '50%',
-              transform: \`translate(-50%, -50%) scale(\${scale})\`,
-              opacity,
-              pointerEvents: 'none',
-              transition: 'transform 0.1s ease, opacity 0.1s ease'
-            }}
-          />
-        );
-      })}
-    </button>
-  );
-}
+APPLICATION FEATURES TO INCLUDE:
+- Multiple interconnected components
+- Routing/navigation between sections
+- Forms with validation
+- Data visualization
+- Search and filtering
+- User interactions and feedback
+- Responsive layouts
+- Loading and error states
+- Local state management
+- Dynamic content generation
 
 AVAILABLE LIBRARIES:
 - Lucide React: import { IconName } from 'lucide-react' (use for beautiful icons)
@@ -285,7 +90,7 @@ COMPONENT CATEGORIES TO EXCEL AT:
 
 Now create a visually stunning, modern component for: "${prompt}"
 
-Make it feel premium, interactive, and something users would be excited to use. Push the boundaries of what's possible with modern web technologies!`;
+Make it a FULL APPLICATION with multiple features, not just a single component!`;
 
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
