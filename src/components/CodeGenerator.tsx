@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import DotGrid from './DotGrid'; // Adjust the path based on where you put the file
 import { LiveProvider, LiveEditor, LiveError, LivePreview } from 'react-live';
 
@@ -14,6 +14,62 @@ const scope = {
   render: (element: React.ReactElement) => element,
 };
 
+// Types for saved projects
+interface SavedProject {
+  id: string;
+  name: string;
+  prompt: string;
+  code: string;
+  createdAt: string;
+  updatedAt: string;
+  thumbnail?: string;
+}
+
+// Storage utilities
+const STORAGE_KEY = 'neural-appforge-projects';
+
+const saveProject = (project: SavedProject): void => {
+  try {
+    const savedProjects = getSavedProjects();
+    const existingIndex = savedProjects.findIndex(p => p.id === project.id);
+    
+    if (existingIndex >= 0) {
+      savedProjects[existingIndex] = { ...project, updatedAt: new Date().toISOString() };
+    } else {
+      savedProjects.unshift(project);
+    }
+    
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(savedProjects));
+  } catch (error) {
+    console.error('Failed to save project:', error);
+  }
+};
+
+const getSavedProjects = (): SavedProject[] => {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved ? JSON.parse(saved) : [];
+  } catch (error) {
+    console.error('Failed to load projects:', error);
+    return [];
+  }
+};
+
+const deleteProject = (id: string): void => {
+  try {
+    const savedProjects = getSavedProjects();
+    const filtered = savedProjects.filter(p => p.id !== id);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+  } catch (error) {
+    console.error('Failed to delete project:', error);
+  }
+};
+
+const generateProjectName = (prompt: string): string => {
+  const words = prompt.split(' ').slice(0, 3);
+  return words.map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+};
+
 export default function CodeGenerator() {
   const [prompt, setPrompt] = useState('');
   const [rawCode, setRawCode] = useState('');
@@ -21,6 +77,29 @@ export default function CodeGenerator() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'preview' | 'code'>('preview');
   const [showTemplates, setShowTemplates] = useState(false);
+  const [currentProject, setCurrentProject] = useState<SavedProject | null>(null);
+  const [savedProjects, setSavedProjects] = useState<SavedProject[]>([]);
+  const [showSavedProjects, setShowSavedProjects] = useState(false);
+  const [projectName, setProjectName] = useState('');
+
+  // Load saved projects on mount
+  useEffect(() => {
+    setSavedProjects(getSavedProjects());
+  }, []);
+
+  // Auto-save when code changes
+  useEffect(() => {
+    if (rawCode && prompt && currentProject) {
+      const updatedProject = {
+        ...currentProject,
+        code: rawCode,
+        prompt: prompt,
+        updatedAt: new Date().toISOString()
+      };
+      saveProject(updatedProject);
+      setSavedProjects(getSavedProjects());
+    }
+  }, [rawCode, prompt, currentProject]);
 
   const applicationTemplates = [
     { name: "Dashboard Analytics", prompt: "Create a comprehensive analytics dashboard with charts, metrics, and data visualization" },
@@ -78,6 +157,67 @@ render(<ErrorComponent />);`;
     }
   }, [rawCode]);
 
+  const handleSaveProject = () => {
+    if (!rawCode || !prompt) return;
+    
+    const name = projectName || generateProjectName(prompt);
+    const project: SavedProject = {
+      id: currentProject?.id || Date.now().toString(),
+      name,
+      prompt,
+      code: rawCode,
+      createdAt: currentProject?.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    saveProject(project);
+    setCurrentProject(project);
+    setSavedProjects(getSavedProjects());
+    setProjectName('');
+    
+    // Show success animation
+    const button = document.getElementById('save-button');
+    if (button) {
+      button.style.background = 'linear-gradient(45deg, #00ff00, #00ffaa)';
+      button.textContent = '✅ SAVED';
+      setTimeout(() => {
+        button.style.background = 'linear-gradient(45deg, #ff00ff, #00ffff)';
+        button.textContent = '💾 SAVE PROJECT';
+      }, 1500);
+    }
+  };
+
+  const handleLoadProject = (project: SavedProject) => {
+    setCurrentProject(project);
+    setPrompt(project.prompt);
+    setRawCode(project.code);
+    setProjectName(project.name);
+    setShowSavedProjects(false);
+    setActiveTab('preview');
+  };
+
+  const handleDeleteProject = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (window.confirm('Are you sure you want to delete this project?')) {
+      deleteProject(id);
+      setSavedProjects(getSavedProjects());
+      if (currentProject?.id === id) {
+        setCurrentProject(null);
+        setPrompt('');
+        setRawCode('');
+        setProjectName('');
+      }
+    }
+  };
+
+  const handleNewProject = () => {
+    setCurrentProject(null);
+    setPrompt('');
+    setRawCode('');
+    setProjectName('');
+    setActiveTab('preview');
+  };
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
@@ -96,6 +236,21 @@ render(<ErrorComponent />);`;
       if (!res.ok) throw new Error(data.error || 'Something went wrong');
       setRawCode(data.code);
       setActiveTab('preview');
+      
+      // Auto-create project if this is a new generation
+      if (!currentProject && data.code) {
+        const newProject: SavedProject = {
+          id: Date.now().toString(),
+          name: generateProjectName(prompt),
+          prompt,
+          code: data.code,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        setCurrentProject(newProject);
+        saveProject(newProject);
+        setSavedProjects(getSavedProjects());
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -167,7 +322,263 @@ render(<ErrorComponent />);`;
             }}>
               AI-POWERED FULL-STACK APPLICATION SYNTHESIS ENGINE
             </p>
+            
+            {/* Project Management Bar */}
+            <div style={{
+              display: 'flex',
+              gap: '15px',
+              marginTop: '30px',
+              justifyContent: 'center',
+              flexWrap: 'wrap'
+            }}>
+              <button
+                onClick={handleNewProject}
+                style={{
+                  background: 'linear-gradient(45deg, #00ff00, #00ffaa)',
+                  color: '#000',
+                  border: 'none',
+                  borderRadius: '15px',
+                  padding: '12px 25px',
+                  fontWeight: '700',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px',
+                  boxShadow: '0 0 20px rgba(0,255,0,0.4)',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                  const target = e.target as HTMLButtonElement;
+                  target.style.transform = 'scale(1.05)';
+                  target.style.boxShadow = '0 0 30px rgba(0,255,0,0.6)';
+                }}
+                onMouseLeave={(e) => {
+                  const target = e.target as HTMLButtonElement;
+                  target.style.transform = 'scale(1)';
+                  target.style.boxShadow = '0 0 20px rgba(0,255,0,0.4)';
+                }}
+              >
+                🆕 New Project
+              </button>
+              
+              <button
+                onClick={() => setShowSavedProjects(!showSavedProjects)}
+                style={{
+                  background: 'linear-gradient(45deg, #ff00ff, #ff0099)',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '15px',
+                  padding: '12px 25px',
+                  fontWeight: '700',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px',
+                  boxShadow: '0 0 20px rgba(255,0,255,0.4)',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                  const target = e.target as HTMLButtonElement;
+                  target.style.transform = 'scale(1.05)';
+                  target.style.boxShadow = '0 0 30px rgba(255,0,255,0.6)';
+                }}
+                onMouseLeave={(e) => {
+                  const target = e.target as HTMLButtonElement;
+                  target.style.transform = 'scale(1)';
+                  target.style.boxShadow = '0 0 20px rgba(255,0,255,0.4)';
+                }}
+              >
+                🗂️ My Apps ({savedProjects.length})
+              </button>
+
+              {rawCode && (
+                <button
+                  id="save-button"
+                  onClick={handleSaveProject}
+                  style={{
+                    background: 'linear-gradient(45deg, #ff00ff, #00ffff)',
+                    color: '#000',
+                    border: 'none',
+                    borderRadius: '15px',
+                    padding: '12px 25px',
+                    fontWeight: '700',
+                    fontSize: '14px',
+                    cursor: 'pointer',
+                    textTransform: 'uppercase',
+                    letterSpacing: '1px',
+                    boxShadow: '0 0 20px rgba(255,0,255,0.4)',
+                    transition: 'all 0.3s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    const target = e.target as HTMLButtonElement;
+                    target.style.transform = 'scale(1.05)';
+                    target.style.boxShadow = '0 0 30px rgba(0,255,255,0.6)';
+                  }}
+                  onMouseLeave={(e) => {
+                    const target = e.target as HTMLButtonElement;
+                    target.style.transform = 'scale(1)';
+                    target.style.boxShadow = '0 0 20px rgba(255,0,255,0.4)';
+                  }}
+                >
+                  💾 Save Project
+                </button>
+              )}
+            </div>
+
+            {/* Current Project Info */}
+            {currentProject && (
+              <div style={{
+                marginTop: '20px',
+                padding: '15px',
+                background: 'rgba(0,255,255,0.1)',
+                border: '1px solid #00ffff',
+                borderRadius: '10px',
+                textAlign: 'center'
+              }}>
+                <div style={{ color: '#00ffff', fontWeight: 'bold', marginBottom: '5px' }}>
+                  📝 Current Project: {currentProject.name}
+                </div>
+                <div style={{ color: '#00ffaa', fontSize: '12px' }}>
+                  Created: {new Date(currentProject.createdAt).toLocaleDateString()} | 
+                  Updated: {new Date(currentProject.updatedAt).toLocaleString()}
+                </div>
+              </div>
+            )}
           </div>
+
+          {/* Saved Projects Gallery */}
+          {showSavedProjects && (
+            <div style={{
+              background: 'linear-gradient(135deg, rgba(0,0,0,0.9), rgba(0,30,60,0.9))',
+              border: '2px solid #ff00ff',
+              borderRadius: '20px',
+              padding: '30px',
+              marginBottom: '30px',
+              boxShadow: '0 0 50px rgba(255,0,255,0.3)'
+            }}>
+              <h3 style={{
+                color: '#ff00ff',
+                textAlign: 'center',
+                marginBottom: '25px',
+                fontSize: '24px',
+                fontWeight: '700',
+                textTransform: 'uppercase',
+                letterSpacing: '2px'
+              }}>
+                🗂️ MY NEURAL APPLICATIONS
+              </h3>
+              
+              {savedProjects.length === 0 ? (
+                <div style={{
+                  textAlign: 'center',
+                  color: '#666',
+                  fontSize: '18px',
+                  padding: '40px'
+                }}>
+                  No saved projects yet. Create your first app to get started!
+                </div>
+              ) : (
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+                  gap: '20px'
+                }}>
+                  {savedProjects.map((project) => (
+                    <div
+                      key={project.id}
+                      onClick={() => handleLoadProject(project)}
+                      style={{
+                        background: 'linear-gradient(135deg, rgba(0,255,255,0.1), rgba(255,0,255,0.1))',
+                        border: currentProject?.id === project.id ? '2px solid #00ff00' : '1px solid #00ffaa',
+                        borderRadius: '15px',
+                        padding: '20px',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        position: 'relative',
+                        minHeight: '150px'
+                      }}
+                      onMouseEnter={(e) => {
+                        const target = e.target as HTMLDivElement;
+                        target.style.transform = 'scale(1.02)';
+                        target.style.boxShadow = '0 0 30px rgba(0,255,255,0.4)';
+                      }}
+                      onMouseLeave={(e) => {
+                        const target = e.target as HTMLDivElement;
+                        target.style.transform = 'scale(1)';
+                        target.style.boxShadow = 'none';
+                      }}
+                    >
+                      <button
+                        onClick={(e) => handleDeleteProject(project.id, e)}
+                        style={{
+                          position: 'absolute',
+                          top: '10px',
+                          right: '10px',
+                          background: 'rgba(255,0,0,0.8)',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '50%',
+                          width: '30px',
+                          height: '30px',
+                          cursor: 'pointer',
+                          fontSize: '16px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        ×
+                      </button>
+                      
+                      <div style={{
+                        color: '#00ffff',
+                        fontWeight: 'bold',
+                        fontSize: '18px',
+                        marginBottom: '10px',
+                        paddingRight: '40px'
+                      }}>
+                        {project.name}
+                      </div>
+                      
+                      <div style={{
+                        color: '#00ffaa',
+                        fontSize: '14px',
+                        marginBottom: '15px',
+                        opacity: 0.8,
+                        lineHeight: '1.4',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden'
+                      }}>
+                        {project.prompt}
+                      </div>
+                      
+                      <div style={{
+                        color: '#666',
+                        fontSize: '12px',
+                        position: 'absolute',
+                        bottom: '15px',
+                        left: '20px',
+                        right: '20px'
+                      }}>
+                        {new Date(project.updatedAt).toLocaleDateString()}
+                        {currentProject?.id === project.id && (
+                          <span style={{
+                            color: '#00ff00',
+                            fontWeight: 'bold',
+                            marginLeft: '10px'
+                          }}>
+                            • ACTIVE
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Template Selector */}
           <div style={{ marginBottom: '30px', textAlign: 'center' }}>
