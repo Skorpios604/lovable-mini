@@ -3,7 +3,13 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import DotGrid from './DotGrid';
 import { LiveProvider, LiveEditor, LiveError, LivePreview } from 'react-live';
-import './neural-appforge.css'; // Import the CSS file
+import './neural-appforge.css';
+import * as LucideReact from 'lucide-react';
+import * as THREE from 'three';
+import * as d3 from 'd3';
+import { LineChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, Area, AreaChart, PieChart, Pie, Cell, Line } from 'recharts';
+import * as Tone from 'tone';
+import _ from 'lodash';
 
 // Available scope for the live preview
 const scope = {
@@ -12,6 +18,39 @@ const scope = {
   useEffect: React.useEffect,
   useMemo: React.useMemo,
   useCallback: React.useCallback,
+  useRef: React.useRef,
+  // Specific Lucide icons
+  Home: LucideReact.Home,
+  Settings: LucideReact.Settings,
+  BarChart3: LucideReact.BarChart3,
+  Search: LucideReact.Search,
+  Music: LucideReact.Music,
+  User: LucideReact.User,
+  Loader: LucideReact.Loader,
+  // Three.js
+  THREE,
+  // D3
+  d3,
+  // Recharts components
+  LineChart,
+  Line, // This should come from your original import
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  Area,
+  AreaChart,
+  PieChart,
+  Pie,
+  Cell,
+  // Tone.js
+  Tone,
+  // Lodash
+  _,
   render: (element: React.ReactElement) => element,
 };
 

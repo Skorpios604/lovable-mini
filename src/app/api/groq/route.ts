@@ -68,6 +68,31 @@ APPLICATION FEATURES TO INCLUDE:
 - Local state management
 - Dynamic content generation
 
+EXACT LIBRARY USAGE - DO NOT INVENT COMPONENTS:
+
+Lucide Icons (use actual component names):
+- <Home size={24} />
+- <Settings size={24} />
+- <BarChart3 size={24} />
+- <Search size={24} />
+- <Music size={24} />
+
+Three.js (manual canvas setup required):
+- Use useRef and useEffect to create THREE scenes
+- const scene = new THREE.Scene()
+- const geometry = new THREE.BoxGeometry(1, 1, 1)
+- const material = new THREE.MeshBasicMaterial({color: 0x00ff00})
+
+Recharts (exact component usage):
+- <LineChart width={400} height={300} data={data}>
+-   <Line type="monotone" dataKey="value" stroke="#8884d8" />
+-   <XAxis dataKey="name" />
+-   <YAxis />
+- </LineChart>
+
+DO NOT create fake wrapper components like ThreeCanvas, LucideIcon, etc.
+Use the actual library APIs only.
+
 AVAILABLE LIBRARIES:
 - Lucide React: import { IconName } from 'lucide-react' (use for beautiful icons)
 - Three.js: Create 3D scenes and interactive graphics
@@ -75,6 +100,16 @@ AVAILABLE LIBRARIES:
 - Recharts: Beautiful charts and graphs
 - Tone.js: Audio synthesis and music
 - Lodash: Utility functions for data manipulation
+
+LIBRARY USAGE EXAMPLES:
+- Lucide Icons: Use like <Music />, <Settings />, <BarChart3 /> (import destructured from scope)
+- Three.js: Use THREE.Scene(), THREE.BoxGeometry(), etc. (access via THREE object)
+- Recharts: Use <LineChart />, <XAxis />, <YAxis /> (import destructured from scope)
+- D3: Use d3.select(), d3.scaleLinear(), etc. (access via d3 object)
+- Tone.js: Use Tone.Synth(), Tone.Player(), etc. (access via Tone object)
+- Lodash: Use _.map(), _.groupBy(), etc. (access via _ object)
+
+IMPORTANT: Do NOT invent component names. Use actual library APIs only.
 
 COMPONENT CATEGORIES TO EXCEL AT:
 1. Interactive Cards & Panels
@@ -123,7 +158,7 @@ Make it a FULL APPLICATION with multiple features, not just a single component!`
           },
           { role: 'user', content: enhancedPrompt },
         ],
-        temperature: 0.8,
+        temperature: 0.3,
         max_tokens: 3000,
         stop: ['```', 'export', 'import'],
       }),
