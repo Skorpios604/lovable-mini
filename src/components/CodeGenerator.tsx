@@ -11,47 +11,76 @@ import { LineChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveCont
 import * as Tone from 'tone';
 import _ from 'lodash';
 
-// Available scope for the live preview
-const scope = {
-  React,
-  useState: React.useState,
-  useEffect: React.useEffect,
-  useMemo: React.useMemo,
-  useCallback: React.useCallback,
-  useRef: React.useRef,
-  // Specific Lucide icons
-  Home: LucideReact.Home,
-  Settings: LucideReact.Settings,
-  BarChart3: LucideReact.BarChart3,
-  Search: LucideReact.Search,
-  Music: LucideReact.Music,
-  User: LucideReact.User,
-  Loader: LucideReact.Loader,
-  // Three.js
-  THREE,
-  // D3
-  d3,
-  // Recharts components
-  LineChart,
-  Line, // This should come from your original import
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  Area,
-  AreaChart,
-  PieChart,
-  Pie,
-  Cell,
-  // Tone.js
-  Tone,
-  // Lodash
-  _,
-  render: (element: React.ReactElement) => element,
+// Available scope for the live preview - now modular based on request type
+const getScope = (requestType: 'component' | 'application') => {
+  const baseScope = {
+    React,
+    useState: React.useState,
+    useEffect: React.useEffect,
+    useMemo: React.useMemo,
+    useCallback: React.useCallback,
+    useRef: React.useRef,
+    render: (element: React.ReactElement) => element,
+  };
+
+  if (requestType === 'component') {
+    // Minimal scope for components
+    return {
+      ...baseScope,
+      // Basic Lucide icons
+      Home: LucideReact.Home,
+      Settings: LucideReact.Settings,
+      Search: LucideReact.Search,
+      User: LucideReact.User,
+      Plus: LucideReact.Plus,
+      X: LucideReact.X,
+      Check: LucideReact.Check,
+      Edit: LucideReact.Edit,
+      Trash2: LucideReact.Trash2,
+    };
+  } else {
+    // Full scope for applications
+    return {
+      ...baseScope,
+      // All Lucide icons
+      Home: LucideReact.Home,
+      Settings: LucideReact.Settings,
+      BarChart3: LucideReact.BarChart3,
+      Search: LucideReact.Search,
+      Music: LucideReact.Music,
+      User: LucideReact.User,
+      Loader: LucideReact.Loader,
+      Plus: LucideReact.Plus,
+      X: LucideReact.X,
+      Check: LucideReact.Check,
+      Edit: LucideReact.Edit,
+      Trash2: LucideReact.Trash2,
+      // Three.js
+      THREE,
+      // D3
+      d3,
+      // Recharts components
+      LineChart,
+      Line,
+      XAxis,
+      YAxis,
+      CartesianGrid,
+      Tooltip,
+      Legend,
+      ResponsiveContainer,
+      BarChart,
+      Bar,
+      Area,
+      AreaChart,
+      PieChart,
+      Pie,
+      Cell,
+      // Tone.js
+      Tone,
+      // Lodash
+      _,
+    };
+  }
 };
 
 // Types for saved projects
@@ -60,6 +89,7 @@ interface SavedProject {
   name: string;
   prompt: string;
   code: string;
+  type: 'component' | 'application';
   createdAt: string;
   updatedAt: string;
   thumbnail?: string;
@@ -121,6 +151,7 @@ export default function CodeGenerator() {
   const [savedProjects, setSavedProjects] = useState<SavedProject[]>([]);
   const [showSavedProjects, setShowSavedProjects] = useState(false);
   const [projectName, setProjectName] = useState('');
+  const [requestType, setRequestType] = useState<'component' | 'application'>('component');
 
   // Load saved projects on mount
   useEffect(() => {
@@ -134,12 +165,23 @@ export default function CodeGenerator() {
         ...currentProject,
         code: rawCode,
         prompt: prompt,
+        type: requestType,
         updatedAt: new Date().toISOString()
       };
       saveProject(updatedProject);
       setSavedProjects(getSavedProjects());
     }
-  }, [rawCode, prompt, currentProject]);
+  }, [rawCode, prompt, currentProject, requestType]);
+
+  const componentTemplates = [
+    { name: "Button", prompt: "Create a modern blue button with hover effects" },
+    { name: "Input Field", prompt: "Create a styled input field with validation" },
+    { name: "Card", prompt: "Create a product card with image and details" },
+    { name: "Modal", prompt: "Create a modal dialog with close functionality" },
+    { name: "Todo Item", prompt: "Create a todo list item with checkbox" },
+    { name: "Navigation", prompt: "Create a horizontal navigation menu" },
+    { name: "Form", prompt: "Create a contact form with validation" }
+  ];
 
   const applicationTemplates = [
     { name: "Dashboard Analytics", prompt: "Create a comprehensive analytics dashboard with charts, metrics, and data visualization" },
@@ -190,7 +232,7 @@ render(<${componentName} />);`;
     } catch (err) {
       console.error('Error processing code:', err);
       return `function ErrorComponent() {
-  return <div className="live-error">Error processing code: ${err}</div>;
+  return <div style={{color: '#ff0000', padding: '20px'}}>Error processing code: ${err}</div>;
 }
 
 render(<ErrorComponent />);`;
@@ -206,6 +248,7 @@ render(<ErrorComponent />);`;
       name,
       prompt,
       code: rawCode,
+      type: requestType,
       createdAt: currentProject?.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
@@ -234,6 +277,7 @@ render(<ErrorComponent />);`;
     setPrompt(project.prompt);
     setRawCode(project.code);
     setProjectName(project.name);
+    setRequestType(project.type);
     setShowSavedProjects(false);
     setActiveTab('preview');
   };
@@ -267,12 +311,11 @@ render(<ErrorComponent />);`;
     setRawCode('');
 
     try {
-      const res = await fetch('/api/groq', {
+      const endpoint = requestType === 'component' ? '/api/component' : '/api/application';
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          prompt: prompt + " (IMPORTANT: Create a COMPLETE APPLICATION with multiple components and features, not just a single component. Use inline styles instead of Tailwind classes. Make it a full-featured app with navigation, multiple views, and comprehensive functionality.)" 
-        }),
+        body: JSON.stringify({ prompt }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Something went wrong');
@@ -286,6 +329,7 @@ render(<ErrorComponent />);`;
           name: generateProjectName(prompt),
           prompt,
           code: data.code,
+          type: requestType,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         };
@@ -299,6 +343,9 @@ render(<ErrorComponent />);`;
       setLoading(false);
     }
   }
+
+  const currentScope = useMemo(() => getScope(requestType), [requestType]);
+  const currentTemplates = requestType === 'component' ? componentTemplates : applicationTemplates;
 
   return (
     <div className="neural-appforge">
@@ -332,7 +379,7 @@ render(<ErrorComponent />);`;
             ⚡ NEURAL APPFORGE ⚡
           </h1>
           <p className="neural-subtitle">
-            AI-POWERED FULL-STACK APPLICATION SYNTHESIS ENGINE
+            AI-POWERED MODULAR CODE SYNTHESIS ENGINE
           </p>
           
           {/* Project Management Bar */}
@@ -345,7 +392,7 @@ render(<ErrorComponent />);`;
               onClick={() => setShowSavedProjects(!showSavedProjects)} 
               className="btn-neural btn-secondary"
             >
-              🗂️ My Apps ({savedProjects.length})
+              🗂️ My Projects ({savedProjects.length})
             </button>
 
             {rawCode && (
@@ -363,7 +410,10 @@ render(<ErrorComponent />);`;
           {currentProject && (
             <div className="current-project-info">
               <div className="current-project-name">
-                📝 Current Project: {currentProject.name}
+                📝 Current Project: {currentProject.name} 
+                <span className="current-project-type">
+                  [{currentProject.type.toUpperCase()}]
+                </span>
               </div>
               <div className="current-project-meta">
                 Created: {new Date(currentProject.createdAt).toLocaleDateString()} | 
@@ -373,16 +423,43 @@ render(<ErrorComponent />);`;
           )}
         </div>
 
+        {/* Mode Selector */}
+        <div className="mode-selector">
+          <div className="mode-selector-title">
+            🎯 GENERATION MODE
+          </div>
+          <div className="mode-selector-buttons">
+            <button
+              onClick={() => setRequestType('component')}
+              className={`btn-neural ${requestType === 'component' ? 'btn-primary' : 'btn-secondary'}`}
+            >
+              🔧 COMPONENT
+            </button>
+            <button
+              onClick={() => setRequestType('application')}
+              className={`btn-neural ${requestType === 'application' ? 'btn-primary' : 'btn-secondary'}`}
+            >
+              🏗️ FULL APP
+            </button>
+          </div>
+          <div className="mode-description">
+            {requestType === 'component' 
+              ? "Perfect for: buttons, inputs, cards, forms, individual UI elements"
+              : "Perfect for: dashboards, complete apps, multi-page systems, full platforms"
+            }
+          </div>
+        </div>
+
         {/* Saved Projects Gallery */}
         {showSavedProjects && (
           <div className="projects-gallery">
             <h3 className="projects-gallery-title">
-              🗂️ MY NEURAL APPLICATIONS
+              🗂️ MY NEURAL PROJECTS
             </h3>
             
             {savedProjects.length === 0 ? (
               <div className="empty-state">
-                No saved projects yet. Create your first app to get started!
+                No saved projects yet. Create your first project to get started!
               </div>
             ) : (
               <div className="projects-grid">
@@ -401,6 +478,9 @@ render(<ErrorComponent />);`;
                     
                     <div className="project-card-title">
                       {project.name}
+                      <span className="project-card-type">
+                        [{project.type?.toUpperCase() || 'LEGACY'}]
+                      </span>
                     </div>
                     
                     <div className="project-card-prompt">
@@ -428,12 +508,12 @@ render(<ErrorComponent />);`;
             onClick={() => setShowTemplates(!showTemplates)}
             className="btn-neural btn-primary mb-lg"
           >
-            🎯 Quick Application Templates
+            🎯 Quick {requestType === 'component' ? 'Component' : 'Application'} Templates
           </button>
           
           {showTemplates && (
             <div className="templates-grid">
-              {applicationTemplates.map((template, index) => (
+              {currentTemplates.map((template, index) => (
                 <button
                   key={index}
                   onClick={() => {
@@ -460,7 +540,10 @@ render(<ErrorComponent />);`;
             <div className="neural-form-border" />
             
             <textarea
-              placeholder="⚡ INITIALIZE APPLICATION MATRIX... (e.g., 'Create a streaming app', 'Build a project management dashboard', 'Generate a social media platform')"
+              placeholder={requestType === 'component' 
+                ? "⚡ CREATE COMPONENT... (e.g., 'make a blue button', 'create a todo item', 'build a contact form')"
+                : "⚡ INITIALIZE APPLICATION MATRIX... (e.g., 'Create a streaming app', 'Build a project management dashboard', 'Generate a social media platform')"
+              }
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               rows={4}
@@ -479,7 +562,7 @@ render(<ErrorComponent />);`;
                   NEURAL SYNTHESIS...
                 </span>
               ) : (
-                '⚡ FORGE APPLICATION ⚡'
+                `⚡ FORGE ${requestType.toUpperCase()} ⚡`
               )}
             </button>
           </div>
@@ -503,13 +586,13 @@ render(<ErrorComponent />);`;
                 className={`results-tab ${activeTab === 'preview' ? 'active' : ''}`}
                 onClick={() => setActiveTab('preview')}
               >
-                📺 APPLICATION PREVIEW
+                📺 {requestType.toUpperCase()} PREVIEW
               </button>
               <button
                 className={`results-tab ${activeTab === 'code' ? 'active' : ''}`}
                 onClick={() => setActiveTab('code')}
               >
-                🔬 APPLICATION CODE
+                🔬 {requestType.toUpperCase()} CODE
               </button>
             </div>
 
@@ -518,11 +601,11 @@ render(<ErrorComponent />);`;
               {activeTab === 'preview' ? (
                 <div>
                   <h3 className="results-title">
-                    ⚡ LIVE APPLICATION PREVIEW ⚡
+                    ⚡ LIVE {requestType.toUpperCase()} PREVIEW ⚡
                   </h3>
                   <div className="preview-container">
                     <div className="preview-scan" />
-                    <LiveProvider code={processedCode} scope={scope} noInline={true}>
+                    <LiveProvider code={processedCode} scope={currentScope} noInline={true}>
                       <LiveError className="live-error" />
                       <LivePreview />
                     </LiveProvider>
@@ -531,10 +614,10 @@ render(<ErrorComponent />);`;
               ) : (
                 <div>
                   <h3 className="results-title">
-                    🔬 APPLICATION SOURCE CODE 🔬
+                    🔬 {requestType.toUpperCase()} SOURCE CODE 🔬
                   </h3>
                   <div className="code-container">
-                    <LiveProvider code={processedCode} scope={scope} noInline={true}>
+                    <LiveProvider code={processedCode} scope={currentScope} noInline={true}>
                       <LiveEditor
                         style={{
                           backgroundColor: '#0a0a0a',
