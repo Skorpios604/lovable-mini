@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: isSimple ? 'llama3-8b-8192' : 'llama3-70b-8192', // Use lighter model for simple requests
+        model: 'openai/gpt-oss-120b', // Use lighter model for simple requests
         messages: [
           {
             role: 'system',
