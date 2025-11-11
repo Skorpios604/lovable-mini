@@ -305,44 +305,69 @@ render(<ErrorComponent />);`;
   };
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    setRawCode('');
+  e.preventDefault();
+  setLoading(true);
+  setError(null);
+  setRawCode('');
 
-    try {
-      const endpoint = requestType === 'component' ? '/api/component' : '/api/application';
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Something went wrong');
-      setRawCode(data.code);
-      setActiveTab('preview');
-      
-      // Auto-create project if this is a new generation
-      if (!currentProject && data.code) {
-        const newProject: SavedProject = {
-          id: Date.now().toString(),
-          name: generateProjectName(prompt),
-          prompt,
-          code: data.code,
-          type: requestType,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        };
-        setCurrentProject(newProject);
-        saveProject(newProject);
-        setSavedProjects(getSavedProjects());
-      }
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+  const trimmedPrompt = prompt.trim();
+  if (!trimmedPrompt) {
+    setError('Prompt cannot be empty');
+    setLoading(false);
+    return;
   }
+
+  try {
+    const endpoint = requestType === 'component' ? '/api/component' : '/api/application';
+    
+    console.log(`Submitting to ${endpoint} with prompt:`, trimmedPrompt);
+
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: trimmedPrompt }),
+    });
+
+    const data = await res.json();
+    console.log('API response:', data, 'Status:', res.status);
+
+    if (!res.ok) {
+      const message = typeof data.error === 'string'
+        ? data.error
+        : JSON.stringify(data.error, null, 2);
+      throw new Error(message);
+    }
+
+    if (!data.code) {
+      throw new Error('No code returned from API');
+    }
+
+    setRawCode(data.code);
+    setActiveTab('preview');
+
+    // Auto-create project if this is a new generation
+    if (!currentProject) {
+      const newProject: SavedProject = {
+        id: Date.now().toString(),
+        name: generateProjectName(trimmedPrompt),
+        prompt: trimmedPrompt,
+        code: data.code,
+        type: requestType,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      setCurrentProject(newProject);
+      saveProject(newProject);
+      setSavedProjects(getSavedProjects());
+    }
+  } catch (err: any) {
+    console.error('Error fetching from API:', err);
+    setError(err?.message || 'Unknown error');
+  } finally {
+    setLoading(false);
+  }
+}
+
 
   const currentScope = useMemo(() => getScope(requestType), [requestType]);
   const currentTemplates = requestType === 'component' ? componentTemplates : applicationTemplates;
